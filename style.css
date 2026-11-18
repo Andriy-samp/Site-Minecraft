@@ -675,9 +675,28 @@ body.scrollable #about-section { display: block; }
 }
 #header.show { transform: translateY(0); opacity: 1; pointer-events: auto; }
 
-.header-left { display: flex; justify-content: flex-end; align-items: center; padding-right: 30px; }
-.header-center { display: flex; justify-content: center; align-items: center; }
-.header-right { display: flex; justify-content: flex-end; align-items: center; gap: 20px; }
+/* Левая колонка (Доска объявлений) */
+.header-left {
+    display: flex;
+    justify-content: flex-end; /* Прижимаем к центру */
+    align-items: center;
+    padding-right: 40px; /* Отступ, чтобы Доска была чуть левее Главной */
+}
+
+/* Центральная колонка (Главная + Команда) */
+.header-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: clamp(15px, 4vw, 50px); /* Расстояние между Главной и Командой */
+}
+
+/* Правая колонка (Язык) */
+.header-right {
+    display: flex;
+    justify-content: flex-end; /* Прижимаем в самый правый угол */
+    align-items: center;
+}
 
 #header button {
     background: transparent; border: none; color: var(--ink);
