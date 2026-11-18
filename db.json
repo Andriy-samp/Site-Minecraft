@@ -1,0 +1,15 @@
+{
+  "users": [
+    {
+      "username": "K1nzy",
+      "password": "123456",
+      "role": "superadmin"
+    },
+    {
+      "username": "ZombieMainer",
+      "password": "123456",
+      "role": "superadmin"
+    }
+  ],
+  "boardData": null
+}

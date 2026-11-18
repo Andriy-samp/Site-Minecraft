@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#03040f" />
+    <title>SpaceTime</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+    <svg id="bgPoly" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
+    <div id="bg-texture"></div>
+
+    <!-- Шапка -->
+    <header id="header">
+        <div class="header-left">
+            <button id="boardBtn" style="display: none;">Доска объявлений</button>
+        </div>
+        <div class="header-center">
+            <button id="homeBtn">Главная</button>
+        </div>
+        <div class="header-right">
+            <button id="teamBtn">Команда</button>
+
+            <!-- Переключатель языка -->
+            <div class="lang-dropdown">
+                <button id="langBtn">RU</button>
+                <div class="lang-options">
+                    <button class="lang-opt" data-lang="ru">RU</button>
+                    <button class="lang-opt" data-lang="ua">UA</button>
+                    <button class="lang-opt" data-lang="en">EN</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Главная сцена -->
+    <div id="main-view">
+        <svg id="cracksOverlay" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+            <defs>
+                <filter id="neonCrack" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="3.2" result="blur1"/>
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="7"  result="blur2"/>
+                    <feMerge><feMergeNode in="blur2"/><feMergeNode in="blur1"/><feMergeNode in="SourceGraphic"/></feMerge>
+                </filter>
+                <filter id="neonBranch" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="1.6" result="b"/>
+                    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                </filter>
+            </defs>
+            <g id="cracksBranches" filter="url(#neonBranch)"></g>
+            <g id="cracksMain"     filter="url(#neonCrack)"></g>
+        </svg>
+
+        <div id="clock-container">
+            <div id="clock-frame"></div>
+            <canvas id="clockCanvas" width="400" height="400"></canvas>
+            <button class="slide-btn epoch-btn" data-epoch="steam"></button>
+            <button class="slide-btn epoch-btn" data-epoch="medieval"></button>
+            <button class="slide-btn epoch-btn" data-epoch="modern"></button>
+            <button class="slide-btn epoch-btn" data-epoch="future"></button>
+        </div>
+    </div>
+
+    <!-- Секция «О сервере» -->
+    <section id="about-section" aria-hidden="true">
+        <div class="about-wrapper">
+            <svg id="aboutCracks" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"></svg>
+            <div class="about-inner">
+                <h2 id="aboutTitle">О сервере</h2>
+                <div id="aboutContent"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Модалка эпохи -->
+    <div id="epochModal" class="modal" role="dialog" aria-modal="true">
+        <div class="modal-content">
+            <p id="epochModalText">Выбрана эпоха: <strong id="epochName"></strong></p>
+            <div class="modal-actions">
+                <button id="modalBackBtn"></button>
+                <button id="modalAboutEpochBtn"></button>
+                <button id="modalCreateBtn"></button>
+            </div>
+            <!-- Секретный триггер для входа в админку -->
+            <div id="adminLoginTrigger" style="margin-top: 15px; font-size: 10px; opacity: 0.3; cursor: pointer; text-align: center;">Admin</div>
+        </div>
+    </div>
+
+    <!-- Модалка «Об эпохе» -->
+    <div id="infoPanel" class="modal" role="dialog" aria-modal="true">
+        <div class="modal-content">
+            <h3 id="infoTitle"></h3>
+            <div id="infoText"></div>
+            <button id="infoCloseBtn"></button>
+        </div>
+    </div>
+
+    <!-- Вкладка «Команда» -->
+    <div id="team-tab" class="tab" style="display:none;">
+        <h2 id="teamTitle">Команда</h2>
+        <div class="team-sections" id="teamContainer"></div>
+        <button class="back-btn" id="teamBackBtn"></button>
+    </div>
+
+    <!-- Вкладка «Доска объявлений» -->
+    <div id="board-tab" class="tab" style="display: none;">
+        <h2 id="boardTitle"></h2>
+        <div class="board-container" id="boardContainer"></div>
+        <button class="back-btn" id="boardBackBtn"></button>
+    </div>
+
+    <!-- Модалка входа в админку -->
+    <div id="adminModal" class="modal" role="dialog" aria-modal="true">
+        <div class="modal-content" style="max-width: 400px;">
+            <h3>Admin Login</h3>
+            <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+                <input type="text" id="adminUser" placeholder="Логин" style="padding: 10px; background: rgba(0,0,0,0.5); border: 1px solid var(--accent-soft); color: var(--ink); border-radius: 4px; font-family: inherit;">
+                <input type="password" id="adminPass" placeholder="Пароль" style="padding: 10px; background: rgba(0,0,0,0.5); border: 1px solid var(--accent-soft); color: var(--ink); border-radius: 4px; font-family: inherit;">
+            </div>
+            <div class="modal-actions">
+                <button id="adminCancelBtn">Отмена</button>
+                <button id="adminSubmitBtn">Войти</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Плашка админа и кнопка сохранения -->
+    <div id="adminBadge" style="display: none;">admin</div>
+    <button id="saveBoardBtn" style="display: none; position: fixed; bottom: 20px; right: 20px; z-index: 100; padding: 10px 20px; background: #00ff00; color: #000; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; box-shadow: 0 0 15px #00ff00;">Сохранить доску</button>
+
+    <script src="script.js"></script>
+</body>
+</html>
