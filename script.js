@@ -16,6 +16,7 @@
     const teamBtn = document.getElementById('teamBtn');
     const boardBtn = document.getElementById('boardBtn');
     const langBtn = document.getElementById('langBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
     const langOptEls = document.querySelectorAll('.lang-opt');
     const epochBtnEls = document.querySelectorAll('.epoch-btn');
 
@@ -25,6 +26,14 @@
     const modalBackBtn = document.getElementById('modalBackBtn');
     const modalAboutEpochBtn = document.getElementById('modalAboutEpochBtn');
     const modalCreateBtn = document.getElementById('modalCreateBtn');
+
+    // Модалка авторизации
+    const authModal = document.getElementById('authModal');
+    const authUser = document.getElementById('authUser');
+    const authPass = document.getElementById('authPass');
+    const authLoginBtn = document.getElementById('authLoginBtn');
+    const authRegisterBtn = document.getElementById('authRegisterBtn');
+    const authCancelBtn = document.getElementById('authCancelBtn');
 
     const infoPanel = document.getElementById('infoPanel');
     const infoTitle = document.getElementById('infoTitle');
@@ -46,14 +55,7 @@
     const boardContainer = document.getElementById('boardContainer');
     const boardBackBtn = document.getElementById('boardBackBtn');
 
-    // Админ
-    const adminModal = document.getElementById('adminModal');
-    const adminUser = document.getElementById('adminUser');
-    const adminPass = document.getElementById('adminPass');
-    const adminSubmitBtn = document.getElementById('adminSubmitBtn');
-    const adminCancelBtn = document.getElementById('adminCancelBtn');
-    const adminLoginTrigger = document.getElementById('adminLoginTrigger');
-    const adminBadge = document.getElementById('adminBadge');
+    const userBadge = document.getElementById('userBadge');
     const saveBoardBtn = document.getElementById('saveBoardBtn');
 
     const W = canvas.width;
@@ -78,38 +80,57 @@
     let aboutObserver = null;
     let cachedStarsGroup = null;
 
-    // БЕЗОПАСНОСТЬ: Используем sessionStorage (доступ сбрасывается при закрытии вкладки)
-    let adminToken = sessionStorage.getItem('adminToken') || null;
-    let currentUser = sessionStorage.getItem('username') || null;
+    // ===== ПОЛЬЗОВАТЕЛЬ =====
+    let userToken = localStorage.getItem('userToken') || null;
+    let userRole = localStorage.getItem('userRole') || null;
+    let userName = localStorage.getItem('userName') || null;
     let currentBoardData = null;
 
-    // Проверка админа
-    const isAdmin = !!adminToken;
-    if (isAdmin) {
-        adminBadge.style.display = 'block';
-        adminBadge.textContent = `admin: ${currentUser}`;
-        saveBoardBtn.style.display = 'block';
-        boardContainer.setAttribute('contenteditable', 'true');
-        boardTab.classList.add('admin-editing');
+    const isAdmin = (userRole === 'superadmin');
+    const isLoggedIn = !!userToken;
+
+    function updateAuthUI() {
+        if (isLoggedIn) {
+            logoutBtn.style.display = 'block';
+            userBadge.style.display = 'block';
+            userBadge.textContent = `${userRole === 'superadmin' ? 'admin' : 'player'}: ${userName}`;
+
+            if (isAdmin) {
+                saveBoardBtn.style.display = 'block';
+                boardContainer.setAttribute('contenteditable', 'true');
+                boardTab.classList.add('admin-editing');
+            }
+        } else {
+            logoutBtn.style.display = 'none';
+            userBadge.style.display = 'none';
+            saveBoardBtn.style.display = 'none';
+            boardContainer.removeAttribute('contenteditable');
+            boardTab.classList.remove('admin-editing');
+        }
     }
+    updateAuthUI();
 
-    // =====================================================================
-    // СЕРВЕР (АДМИНКА)
-    // =====================================================================
-    adminLoginTrigger.addEventListener('click', () => {
-        adminModal.classList.add('show');
-        adminUser.focus();
+    logoutBtn.addEventListener('click', () => {
+        localStorage.removeItem('userToken');
+        localStorage.removeItem('userRole');
+        localStorage.removeItem('userName');
+        location.reload();
     });
 
-    adminCancelBtn.addEventListener('click', () => {
-        adminModal.classList.remove('show');
-        adminUser.value = '';
-        adminPass.value = '';
+    // =====================================================================
+    // АВТОРИЗАЦИЯ
+    // =====================================================================
+    authCancelBtn.addEventListener('click', () => {
+        authModal.classList.remove('show');
+        authUser.value = '';
+        authPass.value = '';
     });
 
-    adminSubmitBtn.addEventListener('click', async () => {
-        const user = adminUser.value;
-        const pass = adminPass.value;
+    authLoginBtn.addEventListener('click', async () => {
+        const user = authUser.value;
+        const pass = authPass.value;
+        if (!user || !pass) return alert('Заполните все поля');
+
         try {
             const res = await fetch('/api/login', {
                 method: 'POST',
@@ -118,24 +139,49 @@
             });
             const data = await res.json();
             if (data.success) {
-                sessionStorage.setItem('adminToken', data.token);
-                sessionStorage.setItem('username', data.username);
+                localStorage.setItem('userToken', data.token);
+                localStorage.setItem('userRole', data.role);
+                localStorage.setItem('userName', data.username);
                 location.reload();
             } else {
                 alert(data.message);
             }
         } catch (e) {
-            alert('Ошибка подключения к серверу (Запущен ли node server.js?)');
+            alert('Ошибка подключения к серверу');
+        }
+    });
+
+    authRegisterBtn.addEventListener('click', async () => {
+        const user = authUser.value;
+        const pass = authPass.value;
+        if (!user || !pass) return alert('Заполните все поля');
+
+        try {
+            const res = await fetch('/api/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: user, password: pass })
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                alert('Аккаунт создан! Теперь вы можете войти.');
+                authLoginBtn.click();
+            } else {
+                alert(data.message);
+            }
+        } catch (e) {
+            alert('Ошибка подключения к серверу');
         }
     });
 
     saveBoardBtn.addEventListener('click', async () => {
-        if (!adminToken) return;
+        if (!isAdmin) return;
         const html = boardContainer.innerHTML;
         try {
             const res = await fetch('/api/board', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': adminToken },
+                headers: { 'Content-Type': 'application/json', 'Authorization': userToken },
                 body: JSON.stringify({ boardData: html })
             });
             if (res.ok) {
@@ -156,13 +202,13 @@
             currentBoardData = data.boardData;
             if (currentBoardData) boardContainer.innerHTML = currentBoardData;
         } catch (e) {
-            console.log('Не удалось загрузить доску с сервера');
+            console.log('Не удалось загрузить доску');
         }
     }
     loadBoardData();
 
     // =====================================================================
-    // СЛОВАРИ (ЛОКАЛИЗАЦИЯ)
+    // СЛОВАРИ
     // =====================================================================
     const TEXTS = {
         ru: {
@@ -731,7 +777,6 @@
         syncScrollState();
         const t = TEXTS[currentLang];
 
-        // ЛОГИКА ДОСТУПА К ЭПОХАМ
         if (epochKey === 'medieval' || isAdmin) {
             modalCreateBtn.disabled = false;
             modalCreateBtn.textContent = t.btnCreate;
@@ -817,7 +862,15 @@
     });
 
     modalCreateBtn.addEventListener('click', () => {
-        if (state !== 'modal') return; confirmCharacter();
+        if (state !== 'modal') return;
+
+        if (isLoggedIn) {
+            confirmCharacter();
+        } else {
+            epochModal.classList.remove('show');
+            authModal.classList.add('show');
+            authUser.focus();
+        }
     });
 
     epochModal.addEventListener('click', (e) => {

@@ -9,10 +9,11 @@
     <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+    <!-- Фон -->
     <svg id="bgPoly" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
     <div id="bg-texture"></div>
 
-     <!-- Шапка -->
+    <!-- Шапка -->
     <header id="header">
         <div class="header-left">
             <button id="boardBtn" style="display: none;">Доска объявлений</button>
@@ -21,8 +22,11 @@
             <button id="homeBtn">Главная</button>
             <button id="teamBtn">Команда</button>
         </div>
-        <div class="header-right">
-            <!-- Оставляем в углу только язык -->
+        <div class="header-right" style="display: flex; gap: 10px; align-items: center;">
+            <!-- Кнопка выхода (появляется, если залогинен) -->
+            <button id="logoutBtn" style="display: none; font-size: 14px; border: 1px solid var(--accent-soft); border-radius: 4px; padding: 4px 12px;">Выйти</button>
+
+            <!-- Переключатель языка -->
             <div class="lang-dropdown">
                 <button id="langBtn">RU</button>
                 <div class="lang-options">
@@ -36,6 +40,7 @@
 
     <!-- Главная сцена -->
     <div id="main-view">
+        <!-- Трещины -->
         <svg id="cracksOverlay" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
             <defs>
                 <filter id="neonCrack" x="-50%" y="-50%" width="200%" height="200%">
@@ -55,6 +60,8 @@
         <div id="clock-container">
             <div id="clock-frame"></div>
             <canvas id="clockCanvas" width="400" height="400"></canvas>
+
+            <!-- Кнопки эпох -->
             <button class="slide-btn epoch-btn" data-epoch="steam"></button>
             <button class="slide-btn epoch-btn" data-epoch="medieval"></button>
             <button class="slide-btn epoch-btn" data-epoch="modern"></button>
@@ -73,7 +80,7 @@
         </div>
     </section>
 
-    <!-- Модалка эпохи -->
+    <!-- Модалка выбора эпохи -->
     <div id="epochModal" class="modal" role="dialog" aria-modal="true">
         <div class="modal-content">
             <p id="epochModalText">Выбрана эпоха: <strong id="epochName"></strong></p>
@@ -82,8 +89,24 @@
                 <button id="modalAboutEpochBtn"></button>
                 <button id="modalCreateBtn"></button>
             </div>
-            <!-- Секретный триггер для входа в админку -->
-            <div id="adminLoginTrigger" style="margin-top: 15px; font-size: 10px; opacity: 0.3; cursor: pointer; text-align: center;">Admin</div>
+        </div>
+    </div>
+
+    <!-- ЕДИНАЯ МОДАЛКА ВХОДА / РЕГИСТРАЦИИ -->
+    <div id="authModal" class="modal" role="dialog" aria-modal="true">
+        <div class="modal-content" style="max-width: 400px;">
+            <h3 style="text-align: center; margin-bottom: 20px;">Вход в аккаунт</h3>
+            <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+                <input type="text" id="authUser" placeholder="Логин" style="padding: 10px; background: rgba(0,0,0,0.5); border: 1px solid var(--accent-soft); color: var(--ink); border-radius: 4px; font-family: inherit;">
+                <input type="password" id="authPass" placeholder="Пароль" style="padding: 10px; background: rgba(0,0,0,0.5); border: 1px solid var(--accent-soft); color: var(--ink); border-radius: 4px; font-family: inherit;">
+            </div>
+            <div class="modal-actions" style="justify-content: space-between;">
+                <button id="authCancelBtn">Отмена</button>
+                <div style="display: flex; gap: 10px;">
+                    <button id="authRegisterBtn">Регистрация</button>
+                    <button id="authLoginBtn">Войти</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -110,23 +133,10 @@
         <button class="back-btn" id="boardBackBtn"></button>
     </div>
 
-    <!-- Модалка входа в админку -->
-    <div id="adminModal" class="modal" role="dialog" aria-modal="true">
-        <div class="modal-content" style="max-width: 400px;">
-            <h3>Admin Login</h3>
-            <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
-                <input type="text" id="adminUser" placeholder="Логин" style="padding: 10px; background: rgba(0,0,0,0.5); border: 1px solid var(--accent-soft); color: var(--ink); border-radius: 4px; font-family: inherit;">
-                <input type="password" id="adminPass" placeholder="Пароль" style="padding: 10px; background: rgba(0,0,0,0.5); border: 1px solid var(--accent-soft); color: var(--ink); border-radius: 4px; font-family: inherit;">
-            </div>
-            <div class="modal-actions">
-                <button id="adminCancelBtn">Отмена</button>
-                <button id="adminSubmitBtn">Войти</button>
-            </div>
-        </div>
-    </div>
+    <!-- Плашка пользователя (admin: name или player: name) -->
+    <div id="userBadge" style="display: none; position: fixed; bottom: 10px; left: 15px; font-size: 12px; color: #00ff00; text-shadow: 0 0 5px #00ff00; font-family: monospace; z-index: 1000; pointer-events: none; opacity: 0.7;"></div>
 
-    <!-- Плашка админа и кнопка сохранения -->
-    <div id="adminBadge" style="display: none;">admin</div>
+    <!-- Кнопка сохранения доски (только для админа) -->
     <button id="saveBoardBtn" style="display: none; position: fixed; bottom: 20px; right: 20px; z-index: 100; padding: 10px 20px; background: #00ff00; color: #000; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; box-shadow: 0 0 15px #00ff00;">Сохранить доску</button>
 
     <script src="script.js"></script>
